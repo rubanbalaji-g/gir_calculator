@@ -1,208 +1,332 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hypoglycemia Fluid Calculator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
-        }
-        .calculator-card {
-            background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            transition: all 0.3s ease-in-out;
-        }
-        .input-field {
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            padding: 0.75rem 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .input-field:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
-        }
-        .btn-primary {
-            background-color: #3b82f6;
-            color: white;
-            font-weight: 600;
-            border-radius: 0.5rem;
-            padding: 0.75rem 1rem;
-            transition: background-color 0.3s, transform 0.2s;
-        }
-        .btn-primary:hover {
-            background-color: #2563eb;
-            transform: translateY(-2px);
-        }
-        .result-item {
-            border-left: 4px solid #3b82f6;
-            background-color: #eff6ff;
-            padding: 1rem;
-            border-radius: 0.5rem;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hypoglycemia Fluid Calculator</title>
+  <style>
+    :root {
+      --bg: #0f172a;            /* slate-900 */
+      --panel: #111827;         /* gray-900 */
+      --card: #0b2239;          /* custom deep blue */
+      --muted: #9ca3af;         /* gray-400 */
+      --text: #f8fafc;          /* slate-50 */
+      --accent: #22d3ee;        /* cyan-400 */
+      --accent-2: #60a5fa;      /* blue-400 */
+      --ok: #22c55e;            /* green-500 */
+      --warn: #f59e0b;          /* amber-500 */
+      --danger: #ef4444;        /* red-500 */
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 10% -20%, #0ea5e91a, transparent),
+                  radial-gradient(1200px 600px at 110% 0%, #22d3ee1a, transparent),
+                  var(--bg);
+      color: var(--text);
+    }
+    header {
+      padding: 32px 20px 16px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0 0 8px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-size: clamp(1.4rem, 2.4vw + 1rem, 2.2rem);
+    }
+    header p { margin: 0; color: var(--muted); }
+
+    .container {
+      max-width: 980px;
+      margin: 20px auto 64px;
+      padding: 0 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: linear-gradient(135deg, #0b2239cc, #0b223980);
+      border: 1px solid #1f2a44;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px #0008;
+      padding: 20px;
+      backdrop-filter: blur(6px);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #e2f1ff;
+    }
+    
+    .parameter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .parameter-item {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .parameter-item label {
+      margin-bottom: 0;
+      white-space: nowrap;
+    }
+
+    label { display: block; font-size: 0.9rem; color: #cfe7ff; margin-bottom: 6px; }
+
+    .input {
+      display: flex; align-items: center; gap: 10px; width: 100%;
+      background: #0a1a2d; border: 1px solid #1e3a5f; color: var(--text);
+      padding: 10px 12px; border-radius: 12px; outline: none;
+      transition: border .2s, box-shadow .2s;
+    }
+    .input:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px #22d3ee33; }
+
+    .input input { width: 100%; border: none; outline: none; background: transparent; color: inherit; font-size: 1rem; }
+    .unit { color: var(--muted); font-size: 0.9rem; }
+
+    .actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    button {
+      border: none; border-radius: 12px; padding: 10px 14px; font-weight: 700; cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #03121e;
+      box-shadow: 0 10px 20px #0ea5e933; transition: transform .08s ease, filter .2s;
+    }
+    button:hover { filter: brightness(1.05); }
+    button:active { transform: translateY(1px); }
+    .btn-secondary { background: #0a1a2d; color: #e6f1ff; border: 1px solid #1e3a5f; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px; border-radius: 999px;
+      padding: 8px 12px; font-weight: 700; margin: 6px 6px 0 0; font-size: 0.95rem;
+    }
+    .b-ok { background: #052e1a; color: #a7f3d0; border: 1px solid #065f46; }
+    .b-warn { background: #412705; color: #fde68a; border: 1px solid #b45309; }
+    .b-danger { background: #3f0a0a; color: #fecaca; border: 1px solid #b91c1c; }
+
+    @keyframes pulse-yellow {
+      0% { box-shadow: 0 0 15px #f59e0b11, 0 0 0 0px #f59e0b22; }
+      100% { box-shadow: 0 0 25px #f59e0b33, 0 0 0 8px transparent; }
+    }
+
+    .result {
+      margin-top: 6px; padding: 18px; border-radius: 12px; 
+      background: linear-gradient(145deg, #412705, #78350f);
+      border: 1px solid var(--warn);
+      animation: pulse-yellow 2s infinite alternate;
+      transition: transform 0.3s ease;
+    }
+     .result:hover {
+      transform: scale(1.01);
+    }
+    .result h3 { margin: 0 0 10px; font-size: 1.05rem; color: #fef3c7; }
+    .result p { 
+      margin: 6px 0; 
+      color: #fde68a;
+      font-size: 1.05rem;
+      line-height: 1.5;
+    }
+    .muted { color: var(--muted); font-size: 0.9rem; }
+
+    footer { text-align: center; color: var(--muted); padding: 24px 16px; font-size: 0.9rem; }
+
+    .kpi {
+      display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-top: 10px;
+    }
+    .kpi .tile { background: #0a1a2d; border: 1px solid #1e3a5f; border-radius: 12px; padding: 12px; }
+    .kpi .label { color: var(--muted); font-size: 0.85rem; }
+    .kpi .value { font-weight: 800; font-size: 1.2rem; }
+
+    .notice { font-size: 0.92rem; line-height: 1.4; }
+  </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body>
+  <header>
+    <h1>⚕️ Hypoglycemia Fluid Calculator</h1>
+  </header>
 
-    <div class="w-full max-w-lg mx-auto">
-        <div class="calculator-card p-6 md:p-8">
-            <div class="text-center mb-6">
-                <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Hypoglycemia Fluid Calculator</h1>
-                <p class="text-gray-500 mt-2">Calculate Dextrose requirements for pediatric patients.</p>
-            </div>
-            
-            <!-- Input Form -->
-            <form id="calculator-form" class="space-y-4">
-                <div>
-                    <label for="weight" class="block text-sm font-medium text-gray-700 mb-1">Child's Weight (kg)</label>
-                    <input type="number" id="weight" class="input-field w-full" placeholder="e.g., 10" step="0.1" required>
-                </div>
-                
-                <div>
-                    <label for="fluid-rate" class="block text-sm font-medium text-gray-700 mb-1">Fluid Rate (ml/kg/24 hours)</label>
-                    <input type="number" id="fluid-rate" class="input-field w-full" placeholder="e.g., 100" required>
-                </div>
-                
-                <div>
-                    <label for="gir" class="block text-sm font-medium text-gray-700 mb-1">Target GIR (mg/kg/min)</label>
-                    <input type="number" id="gir" class="input-field w-full" placeholder="e.g., 6" step="0.1" required>
-                </div>
-
-                <button type="submit" class="btn-primary w-full !mt-6">Calculate Mixture</button>
-            </form>
-
-            <!-- Results Display -->
-            <div id="results-container" class="mt-8 hidden">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Calculation Results</h2>
-                <div class="space-y-3">
-                    <div class="result-item">
-                        <p class="text-sm text-gray-600">Required Dextrose Tonicity</p>
-                        <p id="result-tonicity" class="text-xl font-bold text-blue-600"></p>
-                    </div>
-                    <div class="result-item">
-                        <p class="text-sm text-gray-600">Total Fluid Volume in 6 hours</p>
-                        <p id="result-total-fluid" class="text-xl font-bold text-blue-600"></p>
-                    </div>
-                     <div class="result-item">
-                        <p class="text-sm text-gray-600">Volume of 5% Dextrose (D5W)</p>
-                        <p id="result-d5w" class="text-xl font-bold text-blue-600"></p>
-                    </div>
-                     <div class="result-item">
-                        <p class="text-sm text-gray-600">Volume of 25% Dextrose (D25W)</p>
-                        <p id="result-d25w" class="text-xl font-bold text-blue-600"></p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Error Message Display -->
-            <div id="error-container" class="mt-6 hidden">
-                 <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert">
-                    <p class="font-bold">Calculation Error</p>
-                    <p id="error-message"></p>
-                </div>
-            </div>
-
+  <div class="container">
+    <div class="grid">
+      <section class="card" aria-labelledby="inputs">
+        <h2 id="inputs">Step 1 — Enter Parameters</h2>
+        <div class="parameter-group">
+          <div class="parameter-item">
+            <label for="fluidRate">Fluid infusion rate</label>
+            <div class="input"><input id="fluidRate" type="number" inputmode="decimal" min="1" step="0.1" placeholder="e.g., 80" />
+              <span class="unit">ml/kg/24h</span></div>
+          </div>
+          <div class="parameter-item">
+            <label for="gir">Glucose Infusion Rate (GIR)</label>
+            <div class="input"><input id="gir" type="number" inputmode="decimal" min="0.1" step="0.1" placeholder="e.g., 6" />
+              <span class="unit">mg/kg/min</span></div>
+          </div>
+          <div class="parameter-item">
+            <label for="weight">Child’s weight</label>
+            <div class="input"><input id="weight" type="number" inputmode="decimal" min="0.5" step="0.1" placeholder="e.g., 10" />
+              <span class="unit">kg</span></div>
+          </div>
         </div>
+        <div class="actions">
+          <button id="calcBtn">Calculate</button>
+          <button id="resetBtn" class="btn-secondary">Reset</button>
+        </div>
+        <p class="muted" style="margin-top:8px">Tip: Typical ranges — Fluid 60–150 ml/kg/day, GIR 4-12 mg/kg/min. Always use clinical judgment.</p>
+      </section>
+
+      <section class="card" aria-labelledby="tonicity">
+        <h2 id="tonicity">Step 2 — Target Concentration</h2>
+        <div class="kpi">
+          <div class="tile">
+            <div class="label">Required dextrose concentration</div>
+            <div class="value" id="pctDextrose">— %</div>
+          </div>
+          <div class="tile">
+            <div class="label">Total volume over 6 hours</div>
+            <div class="value" id="vol6h">— ml</div>
+          </div>
+        </div>
+        <div id="tonicityFlags" style="margin-top:10px"></div>
+      </section>
+
+      <section class="card" aria-labelledby="mixture">
+        <h2 id="mixture">Step 3 — D5 & D25 Mixture for 6 Hours</h2>
+        <div class="result" id="mixResult">
+          <h3>Mixture</h3>
+          <p>—</p>
+        </div>
+        <div class="actions">
+          <button id="copyBtn" class="btn-secondary">Copy results</button>
+        </div>
+      </section>
     </div>
 
-    <script>
-        // DOM Elements
-        const form = document.getElementById('calculator-form');
-        const weightInput = document.getElementById('weight');
-        const fluidRateInput = document.getElementById('fluid-rate');
-        const girInput = document.getElementById('gir');
-        
-        const resultsContainer = document.getElementById('results-container');
-        const tonicityResult = document.getElementById('result-tonicity');
-        const totalFluidResult = document.getElementById('result-total-fluid');
-        const d5wResult = document.getElementById('result-d5w');
-        const d25wResult = document.getElementById('result-d25w');
-        
-        const errorContainer = document.getElementById('error-container');
-        const errorMessage = document.getElementById('error-message');
+    <section class="card" aria-labelledby="safety">
+      <h2 id="safety">Safety Notes</h2>
+      <ul class="notice">
+        <li>If target concentration is <strong>&lt; 5%</strong>, the D5/D25 mix can’t go lower than D5; consider alternative diluents.</li>
+        <li>If target concentration is <strong>&gt; 25%</strong>, D25 is the highest in this tool; consider pharmacy‑prepared solutions.</li>
+        <li>High dextrose concentrations (e.g., <strong>&gt; 10–12.5%</strong>) often require central access.</li>
+        <li>Always reassess glucose, fluids, and clinical status regularly.</li>
+      </ul>
+    </section>
+  </div>
 
-        form.addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent form from submitting the traditional way
+  <footer>
+    ©Dr. Rubanbalaji | Version 1.0
+  </footer>
 
-            // Hide previous results and errors
-            resultsContainer.classList.add('hidden');
-            errorContainer.classList.add('hidden');
+  <script>
+    const $ = (id) => document.getElementById(id);
 
-            // Get and parse values
-            const weight = parseFloat(weightInput.value);
-            const fluidRatePerKgPerDay = parseFloat(fluidRateInput.value);
-            const gir = parseFloat(girInput.value);
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+    function round1(x) { return Math.round(x * 10) / 10; }
 
-            // --- 1. Validation ---
-            if (isNaN(weight) || isNaN(fluidRatePerKgPerDay) || isNaN(gir) || weight <= 0 || fluidRatePerKgPerDay <= 0 || gir <= 0) {
-                showError('Please enter valid, positive numbers for all fields.');
-                return;
-            }
+    function compute() {
+      const rate = parseFloat($("fluidRate").value);
+      const gir  = parseFloat($("gir").value);
+      const wt   = parseFloat($("weight").value);
 
-            // --- 1.5 Convert fluid rate to ml/hr for calculations ---
-            const fluidRate = (fluidRatePerKgPerDay * weight) / 24;
+      if (!isFinite(rate) || rate <= 0 || !isFinite(gir) || gir <= 0 || !isFinite(wt) || wt <= 0) {
+        $("pctDextrose").textContent = '— %';
+        $("vol6h").textContent = '— ml';
+        $("mixResult").innerHTML = '<h3>Mixture</h3><p>Please enter valid positive numbers.</p>';
+        $("tonicityFlags").innerHTML = '';
+        return;
+      }
 
+      // 1) Tonicity
+      const mgPerMl = (gir * 1440) / rate; // mg/ml
+      const T = mgPerMl / 10;               // % dextrose
 
-            // --- 2. Calculate Required Dextrose Tonicity ---
-            // Formula: Dextrose % = (GIR * Weight * 60) / (Fluid Rate * 10)
-            const requiredTonicity = (gir * weight * 6) / fluidRate;
-            
-            // Validate if the required tonicity can be made
-            if (requiredTonicity < 5) {
-                showError(`Required tonicity (${requiredTonicity.toFixed(1)}%) is less than 5%. It cannot be prepared by mixing 5% and 25% Dextrose.`);
-                tonicityResult.textContent = `${requiredTonicity.toFixed(2)} %`;
-                totalFluidResult.textContent = 'N/A';
-                d5wResult.textContent = 'N/A';
-                d25wResult.textContent = 'N/A';
-                resultsContainer.classList.remove('hidden');
-                return;
-            }
-             if (requiredTonicity > 25) {
-                showError(`Required tonicity (${requiredTonicity.toFixed(1)}%) is greater than 25%. It cannot be prepared by mixing 5% and 25% Dextrose.`);
-                tonicityResult.textContent = `${requiredTonicity.toFixed(2)} %`;
-                totalFluidResult.textContent = 'N/A';
-                d5wResult.textContent = 'N/A';
-                d25wResult.textContent = 'N/A';
-                resultsContainer.classList.remove('hidden');
-                return;
-            }
+      // 2) Volume over 6h
+      const V = rate * wt * (6 / 24); // ml in 6h
 
-            // --- 3. Calculate Total Fluid Volume ---
-            const totalFluidVolume = fluidRate * 6;
+      $("pctDextrose").textContent = `${round1(T)} %`;
+      $("vol6h").textContent = `${round1(V)} ml`;
 
-            // --- 4. Calculate Dextrose Mixture using Alligation Method ---
-            // Let V1 be volume of 25% Dextrose, V2 be volume of 5% Dextrose
-            // 20 * V1 = (Required Tonicity - 5) * Total Volume
-            const volumeD25W = ((requiredTonicity - 5) / 20) * totalFluidVolume;
-            const volumeD5W = totalFluidVolume - volumeD25W;
-            
-            // --- 5. Display Results ---
-            displayResults({
-                tonicity: requiredTonicity,
-                totalFluid: totalFluidVolume,
-                d5w: volumeD5W,
-                d25w: volumeD25W
-            });
-        });
+      // Flags and badges
+      const flags = [];
+      if (T < 5) flags.push(`<span class="badge b-warn">Target &lt; D5 — cannot go lower using only D5 & D25</span>`);
+      if (T > 25) flags.push(`<span class="badge b-warn">Target &gt; D25 — pharmacy prep may be needed</span>`);
+      if (T > 12.5) flags.push(`<span class="badge b-danger">High concentration - consider central assess</span>`);
+      if (T >= 5 && T <= 12.5) flags.push(`<span class="badge b-ok">Peripheral range</span>`);
+      $("tonicityFlags").innerHTML = flags.join(' ');
 
-        function displayResults(data) {
-            tonicityResult.textContent = `${data.tonicity.toFixed(2)} %`;
-            totalFluidResult.textContent = `${data.totalFluid.toFixed(1)} ml`;
-            d5wResult.textContent = `${data.d5w.toFixed(1)} ml`;
-            d25wResult.textContent = `${data.d25w.toFixed(1)} ml`;
-            resultsContainer.classList.remove('hidden');
+      // 3) Mixture (x: D25, y: D5)
+      let x25 = V * (T - 5) / 20;
+      x25 = clamp(x25, 0, V);
+      const y5 = V - x25;
+
+      const text = `Mix <strong>${round1(x25)} ml of D25</strong> with <strong>${round1(y5)} ml of D5</strong> to deliver <strong>${round1(T)}%</strong> over 6 hours (Total: ${round1(V)} ml).`;
+
+      let note = '';
+      if (T < 5) note = ' Target below 5% is not achievable with D5/D25 alone — this gives D5 (≈5%).';
+      if (T > 25) note = ' Target above 25% is not achievable with D5/D25 — this gives D25 (≈25%).';
+
+      $("mixResult").innerHTML = `<h3>Mixture</h3><p>${text}${note}</p>`;
+
+      return { rate, gir, wt, T, V, x25, y5 };
+    }
+
+    $("calcBtn").addEventListener('click', compute);
+    $("resetBtn").addEventListener('click', () => {
+      $("fluidRate").value = '';
+      $("gir").value = '';
+      $("weight").value = '';
+      $("pctDextrose").textContent = '— %';
+      $("vol6h").textContent = '— ml';
+      $("mixResult").innerHTML = '<h3>Mixture</h3><p>—</p>';
+      $("tonicityFlags").innerHTML = '';
+    });
+
+    $("copyBtn").addEventListener('click', async () => {
+      const res = compute();
+      if (!res) return;
+      const { rate, gir, wt, T, V, x25, y5 } = res;
+      const msg = `Hypoglycemia Fluid Calculator (6h)\n` +
+                  `Fluid rate: ${rate} ml/kg/24h\n` +
+                  `GIR: ${gir} mg/kg/min\n` +
+                  `Weight: ${wt} kg\n` +
+                  `Target dextrose: ${round1(T)} %\n` +
+                  `6h volume: ${round1(V)} ml\n` +
+                  `Mix: ${round1(x25)} ml of D25 + ${round1(y5)} ml of D5.`;
+      try {
+        await navigator.clipboard.writeText(msg);
+        const btn = $("copyBtn");
+        const old = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => (btn.textContent = old), 1200);
+      } catch {
+        // Fallback for older browsers or if permission denied
+        const textArea = document.createElement('textarea');
+        textArea.value = msg;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          const btn = $("copyBtn");
+          const old = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(() => (btn.textContent = old), 1200);
+        } catch (err) {
+          console.error('Fallback copy failed', err);
         }
-        
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorContainer.classList.remove('hidden');
-        }
-    </script>
+        document.body.removeChild(textArea);
+      }
+    });
+  </script>
 </body>
 </html>
+
